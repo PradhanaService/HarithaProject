@@ -1,0 +1,42 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsProfile(profileId) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/profiles/$(profileId))
+        && firestore.get(/databases/(default)/documents/profiles/$(profileId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /portfolio/{profileId}/{fileName} {
+      allow read: if true;
+      allow write: if ownsProfile(profileId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /profile-images/{profileId}/{fileName} {
+      allow read: if true;
+      allow write: if ownsProfile(profileId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /cover-images/{profileId}/{fileName} {
+      allow read: if true;
+      allow write: if ownsProfile(profileId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /post-images/{profileId}/{fileName} {
+      allow read: if true;
+      allow write: if ownsProfile(profileId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
